@@ -12,21 +12,14 @@ from config import settings
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
 SessionLocal = sessionmaker(
-    autocommit=False,  # You have to explicitly call .commit() or .rollback().
-    autoflush=False,  # Avoid automatic flushes,
-    bind=engine,  # Use this SQLAlchemy engine.
-    future=True,  # Enable SQLAlchemy 2.0-style behavior.
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+    future=True,
 )
 
 
 def get_session() -> Generator[Session, None, None]:
-    """
-    Dependency that provides a database session for FastAPI services.
-
-    WARNING: This function should _only_ be called when used with
-    using the `Depends` function from FastAPI. This function will leak
-    sessions if used outside of the context of a request.
-    """
     session = SessionLocal()
     try:
         yield session
@@ -35,3 +28,6 @@ def get_session() -> Generator[Session, None, None]:
 
 
 SessionDep = Annotated[Session, Depends(get_session)]
+
+from models import Base  # ← importa el Base con la tabla
+Base.metadata.create_all(bind=engine)  # ← ahora sí funciona

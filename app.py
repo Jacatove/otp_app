@@ -34,17 +34,22 @@ def register(req: RegisterRequest, svc: OtpService = Depends(get_service)):
         response_model=ValidateResponse,
         dependencies=[Security(check_api_key)],
 )
+
+@app.post(
+    "/otp/validate",
+    response_model=ValidateResponse,
+    dependencies=[Security(check_api_key)],
+)
 def validate(req: ValidateRequest, svc: OtpService = Depends(get_service)):
-    """Endpoint that evaluates if otp is valid for certain user."""
     is_otp_valid = svc.validate_otp(
-        req.user_id,
+        str(req.user_id),     # aseguramos string
         req.code,
     )
 
     if not is_otp_valid:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Código inválido.",
+            detail="Código inválido o ya utilizado recientemente.",
         )
 
     return ValidateResponse(valid=True)
